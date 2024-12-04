@@ -1,6 +1,6 @@
 # Oracle DB 数据库基础知识总结
 
-### 1 数据库的对象
+## 1 数据库的对象
 
 数据库中的对象包含：
 - 表
@@ -13,7 +13,7 @@
 
 下面将对这些数据库对象进行解释分析。
 
-#### 1.1 表(TABLE)
+### 1.1 表(TABLE)
 
 在数据库系统中，表是用来存储数据的基本工具，是包含数据库中所有数据的数据库对象。
 > Oracle数据库系统中表的存储过程：
@@ -29,7 +29,7 @@ CREATE TABLE table_name (
     val VARCHAR(10) NULL);
 ```
 
-#### 1.2 视图(VIEW)
+### 1.2 视图(VIEW)
 视图是从一个（或者多个）数据库表或者是视图中导出的虚拟的表，定义视图后或存放在数据字典中，不会存储在数据库表中。使用视图的优点有：
 
 - 使代码变得简洁，节省篇幅
@@ -55,7 +55,13 @@ CREATE VIEW view_name AS
     WHERE tableid = 1;
 ```
 
-#### 1.3 存储过程(PROCEDURE)
+可以直接引用视图的名称来查找视图内的数据：
+
+```SQL
+SELECT * FROM view_name;
+```
+
+### 1.3 存储过程(PROCEDURE)
 
 存储过程是存储于大型数据库系统的【服务器】中，一组为了完成特定的功能的SQL语句集，经编译之后永久有效，用户可以通过在SQL语句中输入指定存储过程的名字并附带参数（如果存储过程需要参数）来调用、执行存储过程。存储过程是数据库中的一个重要对象。在数据量特别庞大的情况下利用存储过程能达到倍速的效率提升。
 Oracle DB中具有许多预先编译好的存储过程，可以直接引用，例如输出一行内容：
@@ -133,7 +139,7 @@ BEGIN
 END;
 ```
 
-#### 1.4 同义词(SYNONYM)
+### 1.4 同义词(SYNONYM)
 
 表、视图等所有数据库对象以及函数、类型都可使用同义词来进行引用，其作用主要是简化命令、简化代码，使其变得更加易读，并且方便用户对数据库对象进行一系列操作。在Oracle DB中，可以创建私有/公有同义词，私有同义词只有具有使用权限的用户才可以使用，公有同义词所有用户均可以使用。
 
@@ -148,7 +154,7 @@ CREATE SYNONYM id_view FOR view_name;
 CREATE PUBLIC SYNONYM id_view FOR view_name;
 ```
 
-#### 1.5 索引(INDEX)
+### 1.5 索引(INDEX)
 
 索引是对数据库表中一列或多列的值进行排序的一种结构，使用索引可快速访问数据库表中的特定信息。为数据库表中添加索引能够：
 
@@ -168,7 +174,7 @@ CREATE PUBLIC SYNONYM id_view FOR view_name;
 
 - 在创建数据库表时，添加主键约束时，系统会自动添加主键索引（主键索引是唯一索引的一种特例，主键PRIMARY KEY=非空性NOT NULL+唯一性UNIQUE）
 - 在创建数据库表时，添加唯一性约束时，系统会自动添加唯一索引
-- 建议优先使用添加约束条件的方式添加索引
+- 建议优先使用添加约束条件的方式添加索引（约束部分内容见1.7）
 
 添加自定义的索引示例：
 ```SQL
@@ -178,7 +184,7 @@ CREATE INDEX tab_id_val ON table_name(tableid, val);
 SELECT * FROM table_name WHERE tableid = 100 AND val = 'John';
 ```
 
-#### 1.6 触发器(TRIGGER)
+### 1.6 触发器(TRIGGER)
 
 触发器是提供给程序员或者数据分析员的一种保证数据完整性的方法，触发器中的内容不是通过引用调用，也不是通过手工启动，而是通过用户在增、删、改等对数据库表进行修改操作的时候（之前或之后）执行。触发器可以包含简单的查询语句，也可以包含多种复杂的SQL语句，也可用于数据库所有者对用户的权限管理（例如非管理员身份不能修改删除数据，用户不能在非工作时段修改删除数据等）。
 
@@ -213,14 +219,83 @@ INSERT INTO table_name(tableid, val) VALUES (101, 'Sam'); --收到错误-20500
 DELETE FROM table_name WHERE tableid = 100; --收到错误-20502
 ```
 
-#### 1.7 约束(CONSTRAINT)
+### 1.7 约束(CONSTRAINT)
 
-### 2 SQL基础总结
+常见的约束包含：
 
-SQL语言主要包含四类: 
+- 非空约束(NOT NULL)
+- 默认值约束(DEFAULT)
+- 唯一性约束(UNIQUE)
+- 主键约束(PRIMARY KEY)
+- 外键约束(FOREIGN KEY)
+- 检查约束(CHECK)
 
-- DDL(Data Definition Language)--数据定义语言
-- DQL(Data Query Language)--数据查询语言
-- DCL(Data Control Language)--数据控制语言
-- DML(Data Manipulation Language)--数据操控语言。
-- 
+非空约束：具有非空约束的字段值不能够为NULL，否则会报错；
+创建数据库表时，为数据库表的某个字段添加非空约束：
+
+```SQL
+CREATE TABLE new_table (
+    tableid INT NOT NULL,
+    val VARCHAR(10));
+```
+
+默认值约束：在定义字段名时添加，用于保证添加数据时含有缺省输入值时，为这些字段设置一个默认的值；
+为数据库表的某个字段添加默认值约束：
+
+```SQL
+CREATE TABLE new_table (
+    tableid INT,
+    val VARCHAR(10) DEFAULT NULL);
+```
+
+唯一性约束：约束输入/修改数据库表时该字段的每一个值唯一存在，试图添加字段中已有数值的对应数据将会报错；
+
+> 添加唯一性约束的同时还会添加一个唯一性索引，用于加快数据检索速度。
+
+为数据库表的某个字段添加唯一性约束：
+
+```SQL
+CREATE TABLE new_table (
+    tableid INT,
+    val VARCHAR(10),
+    CONSTRAINT un_id UNIQUE(tableid));
+```
+
+主键约束：主键约束是能够区分表中每一行数据的标识符，主键约束在唯一性约束的基础上还添加了非空条件；
+
+> 用户在添加主键约束的同时，系统还会自动添加一个主键索引，用于加快数据检索速度。
+
+为数据库表的某个字段添加主键约束：
+
+```SQL
+CREATE TABLE new_table (
+    tableid INT,
+    val VARCHAR(10),
+    CONSTRAINT pk_id PRIMARY KEY(tableid));
+```
+
+外键约束：在一个关系中，存在一个公共关键字是主键/唯一键，那么这个字段在从属关系中称为外键。外键约束能够保证多表之间进行连接时的数据完整性。
+
+> 通常会在子表添加外键约束，外键约束参考的（字段所在的）表称作父表，外键约束要求子表中受外键约束的字段的值必须在参考的父表字段中出现过。外键约束要求参考的父表字段必须是主键或者是唯一键，否则无法为子表添加外键约束。
+
+为数据库表的某个字段添加外键约束：
+
+```SQL
+CREATE TABLE new_table (
+    tableid INT,
+    val VARCHAR(10)
+    --添加外键的前提是父表参考字段必须是主键或唯一键
+    CONSTRAINT fk_id FOREIGN KEY(tableid) REFERENCES table_name(tableid)
+    ON DELETE CASCADE
+    ON UPDATE SET NULL);
+```
+
+检查约束：用户在添加、修改数据库表中的数据时，系统会检查添加检查约束的字段值是否满足条件，如果不满足条件将会报错。
+为数据库表的某个字段添加检查约束：
+
+```SQL
+CREATE TABLE new_table (
+    tableid INT,
+    val VARCHAR(10),
+    CONSTRAINT chk_id CHECK(tableid > 0));
+```
