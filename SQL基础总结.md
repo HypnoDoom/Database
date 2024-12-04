@@ -135,8 +135,92 @@ END;
 
 #### 1.4 同义词(SYNONYM)
 
-表、视图等所有数据库对象以及函数、类型都可使用同义词来进行引用
+表、视图等所有数据库对象以及函数、类型都可使用同义词来进行引用，其作用主要是简化命令、简化代码，使其变得更加易读，并且方便用户对数据库对象进行一系列操作。在Oracle DB中，可以创建私有/公有同义词，私有同义词只有具有使用权限的用户才可以使用，公有同义词所有用户均可以使用。
+
+创建一个私有同义词：
+```SQL
+--为视图view_name创建一个私有同义词
+CREATE SYNONYM id_view FOR view_name;
+```
+创建一个公有同义词：
+```SQL
+--为视图view_name创建一个公有同义词
+CREATE PUBLIC SYNONYM id_view FOR view_name;
+```
+
+#### 1.5 索引(INDEX)
+
+索引是对数据库表中一列或多列的值进行排序的一种结构，使用索引可快速访问数据库表中的特定信息。为数据库表中添加索引能够：
+
+- 更快速的查询到指定信息，减少多数查询对系统资源的消耗
+- 让用户能够更快速的定位到所需数据
+- 能够加快表与表之间的连接速度
+- 添加唯一性索引，能够保证数据的唯一性与独立性
+
+但是添加索引也有一定的不足：
+
+- 需要花费更多时间来对数据库表进行维护（增、删、改需要额外对索引进行相应的操作，称为动态维护）
+- 索引储存在数据库中，需要额外的物理空间消耗
+
+因此对于经常进行增、删、修改数据的数据库表，则不建议添加索引以减少不必要的资源开销。
+
+对于唯一索引，比较常见的几种有：
+
+- 在创建数据库表时，添加主键约束时，系统会自动添加主键索引（主键索引是唯一索引的一种特例，主键PRIMARY KEY=非空性NOT NULL+唯一性UNIQUE）
+- 在创建数据库表时，添加唯一性约束时，系统会自动添加唯一索引
+- 建议优先使用添加约束条件的方式添加索引
+
+添加自定义的索引示例：
+```SQL
+--添加索引
+CREATE INDEX tab_id_val ON table_name(tableid, val);
+--使用下面的SELECT语句时将会提升查询速度(不唯一)
+SELECT * FROM table_name WHERE tableid = 100 AND val = 'John';
+```
+
+#### 1.6 触发器(TRIGGER)
+
+触发器是提供给程序员或者数据分析员的一种保证数据完整性的方法，触发器中的内容不是通过引用调用，也不是通过手工启动，而是通过用户在增、删、改等对数据库表进行修改操作的时候（之前或之后）执行。触发器可以包含简单的查询语句，也可以包含多种复杂的SQL语句，也可用于数据库所有者对用户的权限管理（例如非管理员身份不能修改删除数据，用户不能在非工作时段修改删除数据等）。
+
+手动添加一个行级触发器，阻止用户在非工作时段对table_name表进行修改：
+```SQL
+CREATE TRIGGER new_trigger 
+BEFORE INSERT OR UPDATE OR DELETE ON table_name
+--这里可以添加FOR EACH ROW标注为行级触发器，也可以不添加
+BEGIN
+    IF (TO_CHAR(sysdate，‘DY’ IN (‘SAT’，‘SUN’)) 
+    OR (TO_NUMBER(sysdate，‘HH24’) NOT BETWEEN 8 AND18) THEN
+        IF INSERTING THEN 
+            --RAISE_APPLICATION_ERROR()是预定义好的存储过程，用于THROW EXCEPTION
+            RAISE_APPLICATION_ERROR(-20500，
+            'You may only insert into the table during working hours.');
+        ELSIF DELETING THEN
+            RAISE_APPLICATION_ERROR(-20502，
+            'You may only delete from the table during working hours.');
+        ELSE THEN
+            RAISE_APPLICATION_ERROR(-20504，
+            'You may only update the table during working hours.');
+        END IF;
+    END IF;
+END;
+```
+
+添加触发器之后，用户如果在非工作时段（非周一至周五的8点-18点）进行以下操作时，将会收到提示信息并且不会对数据库表进行修改：
+
+```SQL
+UPDATE table_name SET val = 'Sam' WHERE tableid = 100; --收到错误-20504
+INSERT INTO table_name(tableid, val) VALUES (101, 'Sam'); --收到错误-20500
+DELETE FROM table_name WHERE tableid = 100; --收到错误-20502
+```
+
+#### 1.7 约束(CONSTRAINT)
 
 ### 2 SQL基础总结
 
-- SQL语言主要包含四类: DDL(Data Definition Language)--数据定义语言, DQL(Data Query Language)--数据查询语言, DCL(Data Control Language)--数据控制语言, DML(Data Manipulation Language)--数据操控语言。
+SQL语言主要包含四类: 
+
+- DDL(Data Definition Language)--数据定义语言
+- DQL(Data Query Language)--数据查询语言
+- DCL(Data Control Language)--数据控制语言
+- DML(Data Manipulation Language)--数据操控语言。
+- 
