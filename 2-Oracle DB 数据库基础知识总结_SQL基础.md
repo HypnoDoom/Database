@@ -112,6 +112,15 @@ GROUP BY dept, ename;
 
 > 聚合函数的结果可以作为限制条件的变量，但是需要用关键字HAVING而不是WHERE来创建限制条件，例如HAVING MAX(salary) > 10000。HAVING条件需要放在GROUP BY后面。
 
+SELECT语句的执行顺序（从上到下依次执行）：
+
+- FROM
+- WHERE
+- GROUP BY
+- HAVING
+- SELECT
+- ORDER BY
+
 #### 2.2.4 排序查询(ORDER BY)
 
 用户还可以对查询的结果进行排序，例如对学生的考试成绩进行排序，就要使用ORDER BY关键字进行排序。
