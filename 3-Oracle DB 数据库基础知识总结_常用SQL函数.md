@@ -84,6 +84,8 @@ SELECT * FROM table_name
 WHERE table_date >= DATE_SUB(CURDATE(), INTERVAL 7 DAY);
 ```
 
+> 注：在Oracle DB中，所有的CURDATE()均可用SYSDATE代替。
+
 此外，还有一些*Oracle DB独有*的时间计算的函数。
 
 ```SQL
