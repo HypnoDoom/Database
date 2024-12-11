@@ -315,3 +315,6 @@ CREATE TABLE new_table (
     val VARCHAR(10),
     CONSTRAINT chk_id CHECK(tableid > 0));
 ```
+
+> 注：创建数据库表的代码适用于MySQL，若要使用Oracle DB创建数据库表，各个变量的类型需要进行修改，并且添加约束条件的方式也有所不同。
+> 在Oracle DB中，可变长度的字符串使用VARCHAR2()而不是VARCHAR()来进行类型声明，日期的类型为DATE而不是DATETIME。
